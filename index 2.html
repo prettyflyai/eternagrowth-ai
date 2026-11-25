@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eterna AI Value Creation Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: top bar, then one routed view. Overview = three use-case columns; each use case = tabs (prototype / build guide / business case). */
+  --bg:#f4f6f4; --surface:#ffffff; --surface-2:#eef2ef; --ink:#13201b; --muted:#56655f; --line:#d9e0dc;
+  --accent:#14684f; --accent-ink:#ffffff; --accent-soft:#dfeee7;
+  --good:#1d7a45; --good-soft:#e1f2e7; --warn:#a8620b; --warn-soft:#fbefdc; --bad:#b0281f; --bad-soft:#f8e3e1;
+  --display:"Fraunces",Georgia,"Times New Roman",serif; --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --radius:10px; --shadow:0 1px 2px rgba(19,32,27,.06),0 6px 20px rgba(19,32,27,.06);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1513; --surface:#161e1b; --surface-2:#1c2622; --ink:#e7eeea; --muted:#9aaba4; --line:#2a3631;
+  --accent:#4cc09a; --accent-ink:#06261b; --accent-soft:#183a2f;
+  --good:#5cc98a; --good-soft:#163222; --warn:#e3a14a; --warn-soft:#3a2a12; --bad:#f07a70; --bad-soft:#3d1a17;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25); color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0f1513; --surface:#161e1b; --surface-2:#1c2622; --ink:#e7eeea; --muted:#9aaba4; --line:#2a3631;
+  --accent:#4cc09a; --accent-ink:#06261b; --accent-soft:#183a2f;
+  --good:#5cc98a; --good-soft:#163222; --warn:#e3a14a; --warn-soft:#3a2a12; --bad:#f07a70; --bad-soft:#3d1a17;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.25); color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{margin:0;text-wrap:balance}
+h1,h2{font-family:var(--display);font-weight:600;letter-spacing:-.01em}
+p{margin:0}
+a{color:var(--accent)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--mono)}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+
+/* top bar */
+.topbar{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.topbar .wrap{display:flex;align-items:center;gap:20px;min-height:58px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;line-height:1.15;text-decoration:none;color:var(--ink)}
+.brand b{font-family:var(--display);font-size:18px;font-weight:600}
+.brand span{font-size:12px;color:var(--muted)}
+.nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+.nav a{text-decoration:none;color:var(--muted);padding:7px 12px;border-radius:8px;font-size:14px;font-weight:500}
+.nav a:hover{background:var(--surface-2);color:var(--ink)}
+.nav a.on{background:var(--accent-soft);color:var(--accent)}
+
+/* buttons, chips */
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:8px;font-weight:500;font-size:14px;text-decoration:none;color:var(--ink)}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.sm{padding:5px 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:2px 9px;border-radius:999px;background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.chip.good{background:var(--good-soft);color:var(--good)}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.chip.bad{background:var(--bad-soft);color:var(--bad)}
+.chip.accent{background:var(--accent-soft);color:var(--accent)}
+.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+
+/* overview */
+.hero{padding:40px 0 24px;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:32px;align-items:end}
+.hero h1{font-size:clamp(28px,4vw,42px);line-height:1.1;max-width:20ch}
+.hero p.lede{margin-top:14px;max-width:62ch;color:var(--muted);font-size:16px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.facts div{background:var(--surface);padding:12px 14px}
+.facts b{display:block;font-size:20px;font-family:var(--display);font-weight:600}
+.facts span{font-size:12px;color:var(--muted)}
+.uc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:8px 0 32px}
+.uc{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.uc-head{padding:18px 18px 14px;border-bottom:1px solid var(--line);border-top:4px solid var(--accent)}
+.uc-head .co{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.uc-head h3{font-family:var(--display);font-size:22px;font-weight:600;margin-top:6px}
+.uc-body{padding:16px 18px;display:flex;flex-direction:column;gap:14px;flex:1}
+.uc-body h4{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px}
+.uc-body p{font-size:14px}
+.roi{background:var(--accent-soft);border-radius:8px;padding:12px 14px}
+.roi .big{font-family:var(--display);font-size:30px;font-weight:600;color:var(--accent);line-height:1.1}
+.roi ul{margin:8px 0 0;padding-left:18px;font-size:13px}
+.ttb{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.ttb div{border:1px solid var(--line);border-radius:8px;padding:8px;text-align:center}
+.ttb b{display:block;font-size:16px}
+.ttb span{font-size:11px;color:var(--muted)}
+.uc-foot{padding:14px 18px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}
+.section{margin:12px 0 36px}
+.section h2{font-size:24px;margin-bottom:12px}
+.portfolio{width:100%;border-collapse:collapse;font-size:14px}
+.portfolio th,.portfolio td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.portfolio th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.tablewrap{overflow-x:auto}
+.note{border-left:3px solid var(--warn);background:var(--surface);padding:12px 16px;border-radius:0 8px 8px 0;font-size:13px;color:var(--muted);max-width:90ch}
+.plan{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.plan .card{padding:14px}
+.plan b{display:block;margin-bottom:4px}
+
+/* use case page */
+.uc-page-head{padding:24px 0 12px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:flex-end}
+.uc-page-head h1{font-size:clamp(24px,3vw,34px)}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:18px;overflow-x:auto}
+.tabs button{background:none;border:0;padding:10px 16px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
+.proto-shell{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:16px;align-items:start;margin-bottom:40px}
+.app{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;min-width:0}
+.app-bar{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--surface-2);flex-wrap:wrap}
+.app-bar .t{font-weight:600}
+.app-bar .dot{width:8px;height:8px;border-radius:50%;background:var(--good)}
+.app-body{padding:16px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.kpi{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surface)}
+.kpi span{font-size:12px;color:var(--muted);display:block}
+.kpi b{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.kpi.hl{border-color:var(--accent);background:var(--accent-soft)}
+.kpi.hl b{color:var(--accent)}
+.cols{display:grid;grid-template-columns:300px minmax(0,1fr);gap:14px}
+.panel{border:1px solid var(--line);border-radius:8px;background:var(--surface);min-width:0}
+.panel-h{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:600;font-size:14px;flex-wrap:wrap}
+.panel-b{padding:12px}
+.log{font-family:var(--mono);font-size:12px;background:var(--surface-2);border-radius:6px;padding:10px;max-height:220px;overflow:auto;line-height:1.6}
+.log div{white-space:pre-wrap}
+.log .ok{color:var(--good)}
+.log .wn{color:var(--warn)}
+.log .ts{color:var(--muted)}
+table.data{width:100%;border-collapse:collapse;font-size:13px}
+table.data th,table.data td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+table.data th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;background:var(--surface-2)}
+table.data td.r,table.data th.r{text-align:right}
+table.data tr.click{cursor:pointer}
+table.data tr.click:hover td{background:var(--surface-2)}
+table.data tr.sel td{background:var(--accent-soft)}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.filters button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px;font-size:12px}
+.filters button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.empty{padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:8px}
+.detail{margin-top:14px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.detail-grid>div{padding:14px;min-width:0}
+.detail-grid>div+div{border-left:1px solid var(--line)}
+.clause{font-family:var(--display);font-size:15px;background:var(--surface-2);border-radius:6px;padding:12px;line-height:1.55}
+.clause mark{background:var(--warn-soft);color:var(--ink);padding:0 2px;border-radius:2px}
+.calc{width:100%;font-size:13px;border-collapse:collapse}
+.calc td{padding:4px 0;border-bottom:1px dashed var(--line)}
+.calc td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.calc tr.tot td{font-weight:600;border-bottom:0;border-top:1px solid var(--ink)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px;border-top:1px solid var(--line);background:var(--surface-2)}
+.letter{white-space:pre-wrap;font-size:13px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px;margin-top:10px}
+.contract{padding:10px 12px;border-bottom:1px solid var(--line);font-size:13px}
+.contract:last-child{border-bottom:0}
+.contract b{display:block;font-size:14px}
+.terms{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.bar{height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden;min-width:60px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.bar.warn i{background:var(--warn)}
+.bar.bad i{background:var(--bad)}
+
+/* walkthrough */
+.walk{position:sticky;top:76px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.walk h3{font-size:14px;margin-bottom:4px}
+.walk ol{list-style:none;padding:0;margin:10px 0 0;display:flex;flex-direction:column;gap:8px;counter-reset:s}
+.walk li{counter-increment:s;display:grid;grid-template-columns:24px 1fr;gap:8px;font-size:13px;color:var(--muted)}
+.walk li::before{content:counter(s);width:22px;height:22px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:12px;font-weight:600}
+.walk li.now{color:var(--ink)}
+.walk li.now::before{border-color:var(--accent);color:var(--accent)}
+.walk li.done::before{content:"✓";background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.walk li b{display:block;color:var(--ink);font-weight:600}
+.walk .reset{margin-top:12px}
+
+/* build guide */
+.arch{display:flex;gap:8px;align-items:stretch;overflow-x:auto;padding-bottom:4px;margin-bottom:20px}
+.arch .node{flex:1 0 150px;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 12px;font-size:13px}
+.arch .node b{display:block;font-size:13px;margin-bottom:4px}
+.arch .node.ai{border-color:var(--accent);background:var(--accent-soft)}
+.arch .arr{align-self:center;color:var(--muted);flex:0 0 auto}
+.gantt{display:grid;grid-template-columns:220px repeat(var(--wk),minmax(28px,1fr));font-size:12px;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:20px;min-width:640px}
+.gantt>div{padding:6px 8px;border-bottom:1px solid var(--line)}
+.gantt .hd{background:var(--surface-2);color:var(--muted);font-weight:600;text-align:center;padding:6px 2px}
+.gantt .lbl{background:var(--surface);font-weight:500}
+.gantt .cell{background:var(--surface);padding:6px 2px}
+.gantt .cell.on{background:var(--accent)}
+.gantt .cell.on.ms{background:var(--warn)}
+.steps{display:flex;flex-direction:column;gap:12px}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.step-h{display:flex;gap:12px;align-items:center;padding:12px 14px;cursor:pointer;width:100%;background:none;border:0;text-align:left}
+.step-h .n{flex:0 0 30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:600}
+.step-h .tt{flex:1}
+.step-h .tt b{display:block}
+.step.done .n{background:var(--accent);color:var(--accent-ink)}
+.step-b{padding:0 14px 14px 56px;display:none}
+.step.open .step-b{display:block}
+.step-b .kv{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;font-size:14px}
+.step-b .kv dt{color:var(--muted);font-size:13px}
+.step-b .kv dd{margin:0}
+.step-b pre{font-family:var(--mono);font-size:12px;background:var(--surface-2);padding:10px;border-radius:6px;overflow-x:auto;margin:10px 0 0}
+.step-b label{display:inline-flex;gap:8px;align-items:center;margin-top:10px;font-size:13px}
+
+/* calculator */
+.calcgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-bottom:40px}
+.slider{margin-bottom:16px}
+.slider label{display:flex;justify-content:space-between;font-size:14px;font-weight:500;margin-bottom:4px}
+.slider output{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:600}
+.slider input{width:100%;accent-color:var(--accent)}
+.out{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--line);gap:12px}
+.out b{font-variant-numeric:tabular-nums;font-size:18px}
+.out.big b{font-family:var(--display);font-size:32px;color:var(--accent)}
+
+/* clerri specifics */
+.seg-tabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
+.seg-tabs button{border:1px solid var(--line);background:var(--surface);padding:6px 12px;border-radius:8px;font-size:13px;font-weight:500}
+.seg-tabs button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.pt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left}
+.pt:hover{background:var(--surface-2)}
+.pt.sel{background:var(--accent-soft)}
+.pt .why{grid-column:1/-1;display:flex;gap:4px;flex-wrap:wrap}
+.pt .sc{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.compare>div{border:1px solid var(--line);border-radius:8px;padding:10px}
+.compare b{font-size:22px;display:block;font-variant-numeric:tabular-nums}
+textarea{width:100%;font:inherit;font-size:14px;border:1px solid var(--line);border-radius:6px;padding:10px;background:var(--surface);color:var(--ink);resize:vertical}
+select{font:inherit;font-size:14px;border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:var(--surface);color:var(--ink)}
+.queue{font-size:13px}
+.queue div{padding:6px 0;border-bottom:1px dashed var(--line);display:flex;justify-content:space-between;gap:8px}
+
+/* titan specifics */
+.map{width:100%;height:auto;display:block;background:var(--surface-2);border-radius:6px}
+.alert{display:grid;grid-template-columns:6px minmax(0,1fr);gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left}
+.alert:hover{background:var(--surface-2)}
+.alert.sel{background:var(--accent-soft)}
+.alert .sev{border-radius:3px;background:var(--warn)}
+.alert .sev.crit{background:var(--bad)}
+.alert .sev.ok{background:var(--good)}
+.alert b{display:block;font-size:14px}
+.hyp{display:grid;grid-template-columns:minmax(0,180px) minmax(60px,1fr) 44px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.hyp .ev{grid-column:1/-1;color:var(--muted);font-size:12px;margin-top:-4px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;box-shadow:var(--shadow);z-index:50;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+@keyframes pulse{0%{r:5;opacity:1}100%{r:14;opacity:0}}
+.pulse{animation:pulse 1.6s ease-out infinite}
+footer{border-top:1px solid var(--line);padding:20px 0 40px;color:var(--muted);font-size:13px}
+@media (prefers-reduced-motion:reduce){.pulse{animation:none}*{transition:none!important}}
+@media (max-width:1050px){.uc-grid{grid-template-columns:1fr}.proto-shell{grid-template-columns:1fr}.walk{position:static}.plan{grid-template-columns:1fr 1fr}}
+@media (max-width:800px){.hero{grid-template-columns:1fr}.cols{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.detail-grid{grid-template-columns:1fr}.detail-grid>div+div{border-left:0;border-top:1px solid var(--line)}.calcgrid{grid-template-columns:1fr}.compare{grid-template-columns:1fr}}
+@media (max-width:480px){.plan{grid-template-columns:1fr}.nav{margin-left:0}.step-b{padding-left:14px}.step-b .kv{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#overview"><b>Eterna AI Value Creation Lab</b><span>Prepared by PraxisIQ for Eterna Growth Partners</span></a>
+    <nav class="nav" id="nav">
+      <a href="#overview" data-r="overview">Overview</a>
+      <a href="#pakenergy" data-r="pakenergy">PakEnergy</a>
+      <a href="#clerri" data-r="clerri">Clerri</a>
+      <a href="#titan-cloud" data-r="titan-cloud">Titan Cloud</a>
+    </nav>
+  </div>
+</header>
+<main id="view"></main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ---------- helpers ---------- */
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => [...el.querySelectorAll(s)];
+const money = (n, d) => {
+  const a = Math.abs(n), s = n < 0 ? "−" : "";
+  if (d === "full") return s + "$" + Math.round(a).toLocaleString("en-US");
+  if (a >= 1e6) return s + "$" + (a/1e6).toFixed(a >= 1e7 ? 1 : 2).replace(/\.?0+$/,"") + "M";
+  if (a >= 1e3) return s + "$" + Math.round(a/1e3).toLocaleString("en-US") + "K";
+  return s + "$" + Math.round(a);
+};
+const fmtN = n => Math.round(n).toLocaleString("en-US");
+const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const sleep = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2600); }
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function stamp(){ const d=new Date(); return d.toTimeString().slice(0,8); }
+async function streamLog(el, lines, gap=420){
+  for (const l of lines){
+    const div=document.createElement("div");
+    div.innerHTML = `<span class="ts">${stamp()}</span>  <span class="${l.c||""}">${esc(l.t)}</span>`;
+    el.appendChild(div); el.scrollTop = el.scrollHeight;
+    await sleep(l.d || gap);
+  }
+}
+
+/* ---------- use case content ---------- */
+const UC = [
+ { id:"pakenergy", company:"PakEnergy", sector:"Energy software · 2,300+ customers",
+   name:"Revenue Assurance Agent", type:"Revenue growth",
+   pain:"Midstream and service-company customers bill from complex contracts: CPI escalators, minimum volume commitments, mileage tiers, fuel surcharges. Billing teams key rates by hand, so escalators get missed and shortfall payments go unbilled. Typical leakage is 0.5–2% of eligible revenue, and nobody finds it until an audit.",
+   solution:"An agent reads every contract, extracts the billable terms, then reconciles them against run tickets, SCADA volumes and issued invoices each billing cycle. It flags each discrepancy with the clause, the evidence and the recalculated amount, and drafts the supplemental invoice for a billing analyst to approve inside PakEnergy Accounting.",
+   roiBig:"$1.15M", roiLabel:"annual value for one customer with $100M of eligible billing",
+   roiLines:["$1.0M recovered revenue (1% leakage recovered), straight to customer EBITDA","$150K of billing-analyst capacity freed","For PakEnergy: a premium module at $24K/yr on 10% of 2,300 customers ≈ $5.5M new ARR"],
+   ttb:["2 wks","6 wks","12 wks"] },
+ { id:"clerri", company:"Clerri", sector:"Dental membership platform · 25,000+ dentists",
+   name:"Patient Membership Growth Agent", type:"Revenue growth",
+   pain:"Clerri already automates plan enrollment and billing, but who gets offered a plan still depends on a busy front desk. Uninsured and lapsed patients walk out without an offer, members quietly churn when a card fails, and patients with unscheduled treatment are never called back. Practices leave recurring revenue on the table every day.",
+   solution:"Every morning, an agent scans tomorrow's schedule and the patient base through Clerri's practice-management integrations. It ranks who to offer membership, who is about to churn and who should be reactivated. It explains each patient's savings using the practice's own fee schedule and drafts the text, email or front-desk script. Staff approve every message before it is sent.",
+   roiBig:"$1.26M", roiLabel:"new annual membership revenue for a 50-location dental group",
+   roiLines:["3,000 additional members (+10 pts enrollment on 600 eligible patients per location) at $35/month","Clerri reports members generate 172% more cash production than cash or insurance patients","For Clerri: an AI growth module at $150/location/month on 5,000 locations ≈ $9M ARR"],
+   ttb:["2 wks","5 wks","10 wks"] },
+ { id:"titan-cloud", company:"Titan Cloud", sector:"Fuel & energy asset software · 100,000+ connected sites",
+   name:"Fuel Loss Investigation Agent", type:"Cost reduction",
+   pain:"Titan Cloud surfaces inventory variance, meter drift and delivery anomalies across thousands of sites, but each alert still needs a fuel analyst to pull tank, delivery and point-of-sale data and work out why. Alerts queue up, small losses run for weeks, and short deliveries go unclaimed.",
+   solution:"An investigation agent picks up each alert, runs a library of root-cause tests (meter drift, short delivery, leak, theft, probe fault, temperature) over Titan Cloud's ATG, delivery and POS data, and ranks the likely cause with evidence. It then drafts the fix: a calibration work order, a carrier claim or a delivery reschedule, ready for one-click approval.",
+   roiBig:"$715K", roiLabel:"gross annual savings for a 250-site fuel retailer",
+   roiLines:["$250K lower fuel loss (25% of a $1M addressable loss pool)","$225K maintenance savings and $240K delivery optimization","For Titan Cloud: $25/site/month on 10% of 100,000 sites ≈ $3M ARR"],
+   ttb:["2 wks","8 wks","14 wks"] }
+];
+const UCmap = Object.fromEntries(UC.map(u=>[u.id,u]));
+
+/* ---------- overview ---------- */
+function renderOverview(v){
+  v.innerHTML = `
+  <div class="wrap">
+    <section class="hero">
+      <div>
+        <div class="eyebrow">AI value creation · Eterna portfolio</div>
+        <h1>Three AI agents that move EBITDA and ARR across the Eterna portfolio</h1>
+        <p class="lede">Eterna backs technology companies with $50M–$400M enterprise value across vertical, cloud, cybersecurity, fintech, healthcare IT and infrastructure software. We assessed ten of its twenty portfolio companies and picked three use cases with measurable outcomes and a clear path to a sellable AI product. Each one opens into a working prototype you can walk a customer through.</p>
+      </div>
+      <div class="facts" aria-label="Eterna at a glance (eternagrowth.com, as of 9/30/26)">
+        <div><b>$2.6B</b><span>total capital committed</span></div>
+        <div><b>$1.5B</b><span>current fund size</span></div>
+        <div><b>20</b><span>portfolio companies listed</span></div>
+        <div><b>6</b><span>core technology sectors</span></div>
+      </div>
+    </section>
+
+    <div class="uc-grid">
+      ${UC.map((u,i)=>`
+      <article class="uc">
+        <div class="uc-head">
+          <div class="co"><span class="eyebrow">${String(i+1).padStart(2,"0")} · ${u.company}</span><span class="chip ${u.type==="Cost reduction"?"warn":"good"}">${u.type}</span></div>
+          <h3>${u.name}</h3>
+          <p class="small muted" style="margin-top:4px">${u.sector}</p>
+        </div>
+        <div class="uc-body">
+          <div><h4>Pain point</h4><p>${u.pain}</p></div>
+          <div><h4>AI solution</h4><p>${u.solution}</p></div>
+          <div class="roi"><h4 style="margin-bottom:2px">Potential ROI</h4><div class="big num">${u.roiBig}</div><div class="small">${u.roiLabel}</div><ul>${u.roiLines.map(l=>`<li>${l}</li>`).join("")}</ul></div>
+          <div><h4>Time to build</h4>
+            <div class="ttb"><div><b>${u.ttb[0]}</b><span>clickable prototype</span></div><div><b>${u.ttb[1]}</b><span>production pilot</span></div><div><b>${u.ttb[2]}</b><span>GA product module</span></div></div>
+          </div>
+        </div>
+        <div class="uc-foot">
+          <a class="btn primary" href="#${u.id}">Open working prototype →</a>
+          <a class="btn" href="#${u.id}-build">Build guide</a>
+        </div>
+      </article>`).join("")}
+    </div>
+
+    <section class="section">
+      <h2>How the other seven portfolio companies map to these three agents</h2>
+      <div class="card tablewrap">
+        <table class="portfolio">
+          <thead><tr><th>Company</th><th>Strongest AI opportunity</th><th>Reuses</th><th>Value lever</th></tr></thead>
+          <tbody>
+            <tr><td><b>Mediaocean</b></td><td>Media billing reconciliation: planned buys vs placements vs publisher invoices</td><td>Revenue Assurance</td><td>Recover 0.2–1% of media spend</td></tr>
+            <tr><td><b>Vision Radiology</b></td><td>Revenue integrity: completed studies vs codes vs contracts</td><td>Revenue Assurance</td><td>Recover 0.5–1.5% of eligible revenue</td></tr>
+            <tr><td><b>Healthcare Fraud Shield</b></td><td>Fraud investigation agent that assembles evidence packs for investigators</td><td>Fuel Loss Investigation</td><td>30–50% less investigator effort</td></tr>
+            <tr><td><b>Ivanti</b></td><td>Autonomous IT incident investigation and approved remediation</td><td>Fuel Loss Investigation</td><td>20–40% more tickets deflected</td></tr>
+            <tr><td><b>Aptean</b></td><td>Order-to-cash agent: emailed POs to validated ERP orders</td><td>Revenue Assurance</td><td>40–70% less manual order entry</td></tr>
+            <tr><td><b>SOLVE</b></td><td>Bond opportunity matching for customer mandates</td><td>Membership Growth</td><td>Premium AI add-on ARR</td></tr>
+            <tr><td><b>IMPLAN</b></td><td>Economic impact copilot on a deterministic model engine</td><td>Membership Growth</td><td>AI add-on ARR</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+
+    <p class="note">This is an outside-in assessment. Improvement percentages and dollar figures are illustrative targets for prototype business cases, not company forecasts or verified performance. Prototype data is synthetic. All figures need validation against each company's internal baselines before they are presented as committed outcomes.</p>
+  </div>
+  <footer><div class="wrap">Sources: eternagrowth.com, pakenergy.com, clerri.com, titancloud.com (accessed Nov 2026)</div></footer>`;
+}
+
+/* ---------- use case page shell ---------- */
+function renderUseCase(v, id, tab){
+  const u = UCmap[id];
+  v.innerHTML = `
+  <div class="wrap">
+    <div class="uc-page-head">
+      <div>
+        <div class="eyebrow">${u.company} · ${u.type}</div>
+        <h1>${u.name}</h1>
+        <p class="muted" style="margin-top:6px;max-width:70ch">${u.roiBig} ${u.roiLabel}. Prototype in ${u.ttb[0]}, production pilot in ${u.ttb[1]}.</p>
+      </div>
+      <a class="btn" href="#overview">← All use cases</a>
+    </div>
+    <div class="tabs" role="tablist">
+      <button role="tab" data-t="demo">Interactive prototype</button>
+      <button role="tab" data-t="build">Step-by-step build guide</button>
+      <button role="tab" data-t="roi">Business case calculator</button>
+    </div>
+    <div id="tabbody"></div>
+  </div>`;
+  const show = t => {
+    $$(".tabs button", v).forEach(b=>b.classList.toggle("on", b.dataset.t===t));
+    const body = $("#tabbody", v);
+    if (t==="demo") PROTO[id](body);
+    if (t==="build") renderBuild(body, BUILD[id]);
+    if (t==="roi") renderCalc(body, CALC[id]);
+    const h = t==="demo" ? id : id + "-" + t;
+    try { if (location.hash.slice(1) !== h) history.replaceState(null, "", "#" + h); } catch(e) {}
+  };
+  $$(".tabs button", v).forEach(b=>b.onclick=()=>show(b.dataset.t));
+  show(tab);
+}
+
+/* walkthrough panel */
+function walkPanel(title, steps){
+  return `<aside class="walk" aria-label="Customer walkthrough">
+    <h3>Customer walkthrough</h3><p class="small muted">${title}</p>
+    <ol>${steps.map((s,i)=>`<li data-w="${i}" class="${i===0?"now":""}"><span><b>${s[0]}</b>${s[1]}</span></li>`).join("")}</ol>
+    <button class="btn sm reset" data-reset>Reset demo</button>
+  </aside>`;
+}
+function walkTo(root, n){
+  $$(".walk li", root).forEach((li,i)=>{ li.classList.toggle("done", i<n); li.classList.toggle("now", i===n); });
+}
+
+/* ================= PROTOTYPE 1: PakEnergy ================= */
+const PAK_CONTRACTS = [
+  {id:"GA-2291", cust:"Caprock Gathering LLC", kind:"Gas gathering", terms:["$0.42/Mcf base","CPI escalator ≤3.5%","MVC 30,000 Mcf/d"]},
+  {id:"CR-1187", cust:"Red Mesa Crude Transport", kind:"Crude trucking", terms:["Mileage tiers","Wait time $95/hr >2h","Diesel surcharge"]},
+  {id:"SW-0442", cust:"Llano Water Midstream", kind:"Produced water disposal", terms:["$0.55/bbl","SCADA-metered volume"]},
+  {id:"MC-3310", cust:"Pecos Compression Partners", kind:"Compression services", terms:["$21.50/HP/month","Maintenance window credit"]}
+];
+const PAK_FINDINGS = [
+  {k:"f1",c:"GA-2291",type:"Missed escalator",amt:141120,conf:97,period:"Jan–Oct 2026",
+   clause:"§4.2 Fee Adjustment. On each January 1 the Gathering Fee shall <mark>escalate by the lesser of the change in CPI-U for the prior calendar year or three and one-half percent (3.5%)</mark>.",
+   evidence:["10 invoices Jan–Oct 2026 billed at $0.4200/Mcf","CPI-U 2025 change: 3.6% → cap applies at 3.5%","Throughput Jan–Oct: 9,600,000 Mcf (SCADA)"],
+   calc:[["Contract rate after escalator","$0.4347/Mcf"],["Billed rate","$0.4200/Mcf"],["Rate gap × 9,600,000 Mcf","$141,120"]],
+   action:"Supplemental invoice INV-S-26-0412 for $141,120 and rate table update from Nov 2026"},
+  {k:"f2",c:"GA-2291",type:"Unbilled MVC shortfall",amt:125976,conf:94,period:"Q3 2026",
+   clause:"§5.1 Minimum Volume Commitment. If average daily throughput in any quarter is below 30,000 Mcf/d, Shipper shall pay a <mark>deficiency payment equal to the shortfall volume multiplied by the then-current Gathering Fee</mark>.",
+   evidence:["Q3 average throughput: 26,850 Mcf/d over 92 days","No deficiency invoice issued for Q3","Q1 and Q2 met MVC"],
+   calc:[["Shortfall: 3,150 Mcf/d × 92 days","289,800 Mcf"],["× fee $0.4347/Mcf","$125,976"]],
+   action:"Deficiency invoice INV-S-26-0413 for $125,976"},
+  {k:"f3",c:"CR-1187",type:"Missing surcharge",amt:48300,conf:91,period:"Jun–Aug 2026",
+   clause:"Schedule B. A fuel surcharge of $0.07/bbl applies <mark>in any month the EIA Gulf Coast diesel index averages above $3.75/gal</mark>.",
+   evidence:["EIA index Jun $3.82, Jul $3.91, Aug $3.79","690,000 bbl hauled Jun–Aug","Surcharge line absent on 3 invoices"],
+   calc:[["690,000 bbl × $0.07","$48,300"]],
+   action:"Supplemental invoice INV-S-26-0414 for $48,300"},
+  {k:"f4",c:"CR-1187",type:"Unbilled wait time",amt:36860,conf:88,period:"Jan–Oct 2026",
+   clause:"§3.4 Wait Time. Carrier may charge <mark>$95.00 per hour for time on location in excess of two (2) hours</mark> per load.",
+   evidence:["214 run tickets show wait > 2h","388 billable hours after the 2-hour allowance","Wait time billed on 0 of 214 tickets"],
+   calc:[["388 hours × $95","$36,860"]],
+   action:"Supplemental invoice with ticket-level backup for $36,860"},
+  {k:"f5",c:"CR-1187",type:"Wrong rate tier",amt:11088,conf:93,period:"Aug–Oct 2026",
+   clause:"Schedule A. Loads with haul distance of <mark>60.1–120 miles: $2.65/bbl</mark>; 0–60 miles: $2.10/bbl.",
+   evidence:["112 tickets with GPS distance 62–88 miles","All billed at Tier 1 ($2.10/bbl)","20,160 bbl affected"],
+   calc:[["20,160 bbl × ($2.65 − $2.10)","$11,088"]],
+   action:"Correct tier mapping in dispatch; supplemental invoice $11,088"},
+  {k:"f6",c:"SW-0442",type:"Volume mismatch",amt:31625,conf:90,period:"Jan–Oct 2026",
+   clause:"§2.3 Volumes for billing shall be <mark>determined by the Facility SCADA meter</mark>.",
+   evidence:["SCADA volume: 1,284,000 bbl","Invoiced volume: 1,226,500 bbl (manual tickets)","Gap concentrated in Mar and Jul meter outages"],
+   calc:[["57,500 bbl × $0.55","$31,625"]],
+   action:"Bill SCADA volumes; supplemental invoice $31,625"},
+  {k:"f7",c:"SW-0442",type:"Duplicate credit",amt:18400,conf:96,period:"Sep 2026",
+   clause:"Credit memo CM-8812 (pump outage credit) <mark>applied to invoices 26-0911 and 26-0934</mark>.",
+   evidence:["Same memo ID on two invoices","Single approved outage credit in CRM"],
+   calc:[["Duplicate credit reversed","$18,400"]],
+   action:"Reverse duplicate credit on next invoice"},
+  {k:"f8",c:"MC-3310",type:"Missed rate step-up",amt:59449,conf:92,period:"Apr–Oct 2026",
+   clause:"§6.1 Monthly fee is <mark>$21.50 per installed horsepower</mark>, adjusted from the month after any unit upgrade.",
+   evidence:["Unit PC-07 upgraded 1,380 → 1,775 HP on 3/14/26","Billing still at 1,380 HP for 7 months"],
+   calc:[["395 HP × $21.50 × 7 months","$59,449"]],
+   action:"Update HP in billing master; supplemental invoice $59,449"},
+  {k:"f9",c:"MC-3310",type:"Overbilling (credit due)",amt:-12600,conf:89,period:"May 2026",
+   clause:"§7.2 <mark>No standby fee is payable during the scheduled maintenance window</mark> agreed under Exhibit D.",
+   evidence:["Standby fee billed for May 6–20 maintenance window","Customer has not disputed yet"],
+   calc:[["Standby fee to credit","−$12,600"]],
+   action:"Issue proactive credit memo for $12,600 to protect the relationship"}
+];
+
+const PROTO = {};
+PROTO.pakenergy = function(body){
+  const S = {ran:false, sel:null, filter:"All", approved:{}};
+  body.innerHTML = `
+  <div class="proto-shell">
+    <div class="app">
+      <div class="app-bar"><span class="dot"></span><span class="t">Revenue Assurance Center</span><span class="muted small">PakEnergy Accounting · concept · synthetic data</span><span style="margin-left:auto" class="chip accent">Billing cycle: Nov 2026</span></div>
+      <div class="app-body">
+        <div class="kpis">
+          <div class="kpi"><span>Contracts analyzed</span><b id="k1">0 / 4</b></div>
+          <div class="kpi"><span>Exceptions found</span><b id="k2">–</b></div>
+          <div class="kpi"><span>Underbilling found (YTD)</span><b id="k3">–</b></div>
+          <div class="kpi hl"><span>Approved for recovery</span><b id="k4">$0</b></div>
+        </div>
+        <div class="cols">
+          <div class="panel">
+            <div class="panel-h">Contracts in scope <span class="chip">${PAK_CONTRACTS.length} customers</span></div>
+            ${PAK_CONTRACTS.map(c=>`<div class="contract"><b>${c.cust}</b><span class="muted">${c.id} · ${c.kind}</span><div class="terms">${c.terms.map(t=>`<span class="chip">${t}</span>`).join("")}</div></div>`).join("")}
+            <div class="panel-b"><button class="btn primary" id="run" style="width:100%;justify-content:center">Run reconciliation agent</button>
+            <div class="log" id="log" style="margin-top:10px"><div class="ts">Agent idle. Sources connected: contracts, run tickets, SCADA volumes, invoices.</div></div></div>
+          </div>
+          <div class="panel" style="padding:12px">
+            <div id="exc"><div class="empty"><b>No exceptions yet</b><br>Run the agent to reconcile 4 contracts against 10 months of tickets, SCADA volumes and invoices.</div></div>
+            <div id="det"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    ${walkPanel("Billing manager at a midstream customer", [
+      ["Set the scene","Four customer contracts with escalators, MVCs and surcharges. Billing is keyed by hand today."],
+      ["Run the agent","Watch it extract terms and reconcile tickets, SCADA and invoices."],
+      ["Open the biggest finding","Show the clause, the evidence and the recalculation side by side."],
+      ["Approve a correction","One click drafts the supplemental invoice. Recovered revenue updates."],
+      ["Show it catches overbilling","The credit-due finding builds trust with their customers."]])}
+  </div>`;
+  const root = body;
+  $("[data-reset]",root).onclick=()=>PROTO.pakenergy(body);
+  const under = PAK_FINDINGS.filter(f=>f.amt>0).reduce((a,f)=>a+f.amt,0);
+  function kpis(){
+    const ap = Object.keys(S.approved).reduce((a,k)=>a+Math.max(0,PAK_FINDINGS.find(f=>f.k===k).amt),0);
+    $("#k4",root).textContent = money(ap,"full");
+  }
+  function table(){
+    const types = ["All", ...new Set(PAK_FINDINGS.map(f=>f.type))];
+    const rows = PAK_FINDINGS.filter(f=>S.filter==="All"||f.type===S.filter);
+    $("#exc",root).innerHTML = `
+      <div class="filters">${types.map(t=>`<button class="${t===S.filter?"on":""}" data-f="${esc(t)}">${t}</button>`).join("")}</div>
+      <div class="tablewrap"><table class="data"><thead><tr><th>Customer</th><th>Exception</th><th>Period</th><th class="r">Amount</th><th>Confidence</th><th>Status</th></tr></thead><tbody>
+      ${rows.map(f=>{const c=PAK_CONTRACTS.find(x=>x.id===f.c); const st=S.approved[f.k];
+        return `<tr class="click ${S.sel===f.k?"sel":""}" data-k="${f.k}" tabindex="0"><td><b>${c.cust}</b><br><span class="muted small">${c.id}</span></td><td>${f.type}</td><td class="small">${f.period}</td><td class="r num" style="color:${f.amt<0?"var(--warn)":"inherit"}"><b>${money(f.amt,"full")}</b></td><td><div style="display:flex;gap:6px;align-items:center"><div class="bar"><i style="width:${f.conf}%"></i></div><span class="small num">${f.conf}%</span></div></td><td>${st?`<span class="chip good">${st}</span>`:`<span class="chip warn">Needs review</span>`}</td></tr>`}).join("")}
+      </tbody></table></div>`;
+    $$("[data-f]",root).forEach(b=>b.onclick=()=>{S.filter=b.dataset.f;table();});
+    $$("tr[data-k]",root).forEach(tr=>{tr.onclick=()=>open(tr.dataset.k); tr.onkeydown=e=>{if(e.key==="Enter")open(tr.dataset.k)};});
+  }
+  function open(k){
+    S.sel=k; table();
+    const f = PAK_FINDINGS.find(x=>x.k===k), c=PAK_CONTRACTS.find(x=>x.id===f.c);
+    walkTo(root, f.amt<0 ? 5 : Math.max(3, curStep()));
+    $("#det",root).innerHTML = `
+    <div class="detail">
+      <div class="panel-h">${f.type} · ${c.cust}<span class="chip ${f.amt<0?"warn":"accent"}">${f.amt<0?"Credit due to customer":"Recoverable"} ${money(f.amt,"full")}</span></div>
+      <div class="detail-grid">
+        <div><div class="eyebrow" style="margin-bottom:6px">Contract clause · ${c.id}</div><div class="clause">${f.clause}</div>
+          <div class="eyebrow" style="margin:12px 0 6px">Evidence the agent gathered</div><ul class="small" style="margin:0;padding-left:18px">${f.evidence.map(e=>`<li>${e}</li>`).join("")}</ul></div>
+        <div><div class="eyebrow" style="margin-bottom:6px">Recalculation (deterministic engine)</div>
+          <table class="calc">${f.calc.map((r,i)=>`<tr class="${i===f.calc.length-1?"tot":""}"><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("")}</table>
+          <div class="eyebrow" style="margin:14px 0 6px">Recommended action</div><p class="small">${f.action}</p>
+          <div id="letter"></div></div>
+      </div>
+      <div class="actions">
+        <button class="btn primary sm" id="ap">${f.amt<0?"Approve credit memo":"Approve correction"}</button>
+        <button class="btn sm" id="dr">Draft customer notice</button>
+        <button class="btn sm" id="ds">Send to dispute review</button>
+      </div>
+    </div>`;
+    $("#ap",root).onclick=()=>{S.approved[k]= f.amt<0?"Credit issued":"Approved"; kpis(); table(); open(k); toast(f.amt<0?"Credit memo queued in PakEnergy Accounting":"Supplemental invoice drafted in PakEnergy Accounting"); if(f.amt>0) walkTo(root,4);};
+    $("#ds",root).onclick=()=>{S.approved[k]="In dispute review"; table(); open(k); toast("Assigned to billing lead for review");};
+    $("#dr",root).onclick=()=>{ $("#letter",root).innerHTML = `<div class="letter">Subject: Billing adjustment for contract ${c.id}
+
+Hi ${c.cust.split(" ")[0]} team,
+
+During our periodic contract review we found that ${f.type.toLowerCase()} affected invoices for ${f.period}. ${f.amt<0?"We will apply a credit of "+money(-f.amt,"full")+" to your next invoice.":"A supplemental invoice for "+money(f.amt,"full")+" is attached, with the contract reference and ticket-level backup."}
+
+Happy to walk through the detail on a call.
+
+Billing Operations</div>`; };
+  }
+  function curStep(){ return $$(".walk li.done",root).length; }
+  $("#run",root).onclick = async ()=>{
+    const btn=$("#run",root); btn.disabled=true; btn.textContent="Agent running…"; walkTo(root,1);
+    const log=$("#log",root); log.innerHTML="";
+    const lines=[
+      {t:"Loading 4 contracts…"},
+      {t:"Extracted 23 billable terms (rates, escalators, MVCs, tiers, surcharges)",c:"ok"},
+      {t:"Pulling 3,412 run tickets and 41 invoices (Jan–Oct 2026)"},
+      {t:"Pulling SCADA volumes for 2 facilities"},
+      {t:"Recomputing expected billing per period with the deterministic engine"},
+      {t:"GA-2291: escalator not applied since Jan 1 → $141,120",c:"wn"},
+      {t:"GA-2291: Q3 MVC shortfall not invoiced → $125,976",c:"wn"},
+      {t:"CR-1187: 3 findings (surcharge, wait time, tier) → $96,248",c:"wn"},
+      {t:"SW-0442: SCADA volume gap + duplicate credit → $50,025",c:"wn"},
+      {t:"MC-3310: HP step-up missed → $59,449; standby overbilled → credit $12,600",c:"wn"},
+      {t:"Built 9 evidence packs with clause citations. Ready for review.",c:"ok"}];
+    let n=0;
+    for (const l of lines){ await streamLog(log,[l],380); n++; $("#k1",root).textContent = Math.min(4, Math.ceil(n/2.5)) + " / 4"; }
+    $("#k1",root).textContent="4 / 4"; $("#k2",root).textContent="9"; $("#k3",root).textContent=money(under,"full");
+    S.ran=true; table(); walkTo(root,2); btn.textContent="Re-run agent"; btn.disabled=false;
+  };
+};
+
+/* ================= PROTOTYPE 2: Clerri ================= */
+const CL_LOC = {"Harbor Point":{chairs:8,eligible:640},"Westlake":{chairs:6,eligible:520},"Cedar Ridge":{chairs:7,eligible:590}};
+const CL_PATIENTS = [
+ {id:1,loc:"Harbor Point",seg:"enroll",name:"Maria Delgado",age:41,appt:"Tomorrow 8:30 AM · Hygiene",score:92,why:["Uninsured","2 visits/yr history","Crown recommended"],tx:1850,ctx:"Lost employer dental coverage in August. Pays cash and has asked about price twice."},
+ {id:2,loc:"Harbor Point",seg:"enroll",name:"James Whitaker",age:58,appt:"Tomorrow 10:00 AM · Exam",score:87,why:["Insurance max reached","Perio maintenance"],tx:1240,ctx:"Annual maximum used up in July. Needs quarterly perio maintenance."},
+ {id:3,loc:"Harbor Point",seg:"enroll",name:"Aisha Rahman",age:29,appt:"Tomorrow 1:15 PM · New patient",score:81,why:["Self-pay new patient","Family of 3"],tx:0,ctx:"New patient, self-pay. Booked her two children for next month."},
+ {id:4,loc:"Harbor Point",seg:"enroll",name:"Tom Becker",age:66,appt:"Tomorrow 3:40 PM · Hygiene",score:74,why:["Medicare, no dental","Implant consult"],tx:4200,ctx:"Medicare without dental coverage. Implant consult pending."},
+ {id:5,loc:"Harbor Point",seg:"retain",name:"Linda Cho",age:47,appt:"Member since Mar 2025",score:88,why:["Card declined ×2","No visit in 7 months"],tx:0,ctx:"Card on file declined twice this month. Missed fall recall."},
+ {id:6,loc:"Harbor Point",seg:"retain",name:"Robert Nunez",age:35,appt:"Member since Jan 2026",score:71,why:["Used 0 of 2 cleanings","Renewal in 30 days"],tx:0,ctx:"Hasn't used plan benefits. High risk of not renewing."},
+ {id:7,loc:"Harbor Point",seg:"react",name:"Grace Holloway",age:52,appt:"Last visit Feb 2025",score:84,why:["21 months inactive","Unscheduled bridge"],tx:3100,ctx:"Bridge recommended in Feb 2025, never scheduled."},
+ {id:8,loc:"Harbor Point",seg:"react",name:"Derek Mills",age:44,appt:"Last visit Aug 2024",score:69,why:["27 months inactive","2 fillings pending"],tx:640,ctx:"Two fillings diagnosed, no follow-up."},
+ {id:9,loc:"Westlake",seg:"enroll",name:"Priya Shah",age:38,appt:"Tomorrow 9:00 AM · Hygiene",score:90,why:["Uninsured","Whitening interest"],tx:450,ctx:"Freelancer, self-pay. Asked about whitening."},
+ {id:10,loc:"Westlake",seg:"enroll",name:"Carlos Ortega",age:61,appt:"Tomorrow 11:30 AM · Exam",score:79,why:["Retired, no coverage","Night guard"],tx:520,ctx:"Retired last year and lost coverage."},
+ {id:11,loc:"Westlake",seg:"retain",name:"Hannah Price",age:33,appt:"Member since Jun 2025",score:76,why:["Moved 18 mi away","No-show last recall"],tx:0,ctx:"Updated address farther away. Missed last recall."},
+ {id:12,loc:"Westlake",seg:"react",name:"Owen Fletcher",age:49,appt:"Last visit Nov 2024",score:73,why:["24 months inactive","Crown pending"],tx:1850,ctx:"Crown pending since Nov 2024."},
+ {id:13,loc:"Cedar Ridge",seg:"enroll",name:"Emily Tran",age:27,appt:"Tomorrow 8:00 AM · New patient",score:85,why:["Self-pay","Gig worker"],tx:0,ctx:"Self-pay new patient referred by a member."},
+ {id:14,loc:"Cedar Ridge",seg:"retain",name:"Frank Morales",age:70,appt:"Member since 2024",score:82,why:["Card expiring","Spouse cancelled"],tx:0,ctx:"Card expires this month. Spouse cancelled last month."},
+ {id:15,loc:"Cedar Ridge",seg:"react",name:"Sofia Ramirez",age:39,appt:"Last visit Jan 2025",score:77,why:["22 months inactive","Ortho consult"],tx:5200,ctx:"Ortho consult never booked."}
+];
+const FEES = {cleaning:125, exam:65, xray:160, plan:35, disc:0.15};
+PROTO.clerri = function(body){
+  const S = {loc:"Harbor Point", seg:"enroll", sel:null, ch:"SMS", queue:[]};
+  body.innerHTML = `
+  <div class="proto-shell">
+    <div class="app">
+      <div class="app-bar"><span class="dot"></span><span class="t">Dental Growth Center</span><span class="muted small">Clerri · concept · synthetic patients</span>
+        <span style="margin-left:auto;display:flex;gap:8px;align-items:center"><label class="small muted" for="loc">Location</label><select id="loc">${Object.keys(CL_LOC).map(l=>`<option>${l}</option>`).join("")}</select></span></div>
+      <div class="app-body">
+        <div class="small muted" style="margin-bottom:10px">Bright Harbor Dental Partners · 50 locations · <span id="scanned">Morning scan completed 6:02 AM</span> <button class="btn sm" id="rescan" style="margin-left:6px">Re-run morning scan</button></div>
+        <div class="kpis">
+          <div class="kpi"><span>Membership offers today</span><b id="c1">–</b></div>
+          <div class="kpi"><span>Members at risk</span><b id="c2">–</b></div>
+          <div class="kpi"><span>Unscheduled treatment</span><b id="c3">–</b></div>
+          <div class="kpi hl"><span>Approved actions · annual value</span><b id="c4">$0</b></div>
+        </div>
+        <div class="log" id="log" style="display:none;margin-bottom:12px"></div>
+        <div class="cols">
+          <div class="panel">
+            <div class="panel-b" style="padding-bottom:0"><div class="seg-tabs" role="tablist">
+              <button data-s="enroll">Enroll</button><button data-s="retain">Retain</button><button data-s="react">Reactivate</button></div></div>
+            <div id="plist"></div>
+          </div>
+          <div class="panel" id="pdet"></div>
+        </div>
+        <div class="panel" style="margin-top:14px"><div class="panel-h">Outreach queue <span class="chip" id="qn">0 approved</span></div><div class="panel-b queue" id="queue"><span class="muted">Approved messages land here and go out through Clerri's patient messaging.</span></div></div>
+      </div>
+    </div>
+    ${walkPanel("Regional ops director at a dental group", [
+      ["Start with tomorrow","The agent already scanned the schedule at 6 AM and ranked who to offer membership."],
+      ["Open the top patient","Show why she was flagged and the savings math from the practice's own fees."],
+      ["Approve the message","Staff edit or approve. Nothing goes out without a human."],
+      ["Switch to Retain","A declined card and a missed recall: catch churn before it happens."],
+      ["Show the group view","Change location; value rolls up across all 50 practices."]])}
+  </div>`;
+  const root=body;
+  $("[data-reset]",root).onclick=()=>PROTO.clerri(body);
+  const pts = () => CL_PATIENTS.filter(p=>p.loc===S.loc);
+  function kpis(){
+    const p=pts(); $("#c1",root).textContent=p.filter(x=>x.seg==="enroll").length;
+    $("#c2",root).textContent=p.filter(x=>x.seg==="retain").length;
+    $("#c3",root).textContent=money(p.filter(x=>x.seg==="react").reduce((a,x)=>a+x.tx,0),"full");
+    $("#c4",root).textContent=money(S.queue.reduce((a,q)=>a+q.val,0),"full");
+  }
+  function list(){
+    $$(".seg-tabs button",root).forEach(b=>b.classList.toggle("on",b.dataset.s===S.seg));
+    const p=pts().filter(x=>x.seg===S.seg).sort((a,b)=>b.score-a.score);
+    $("#plist",root).innerHTML = p.map(x=>`<button class="pt ${S.sel===x.id?"sel":""}" data-p="${x.id}">
+      <span><b>${x.name}</b>, ${x.age}<br><span class="small muted">${x.appt}</span></span>
+      <span class="sc"><span class="bar ${S.seg==="retain"?"bad":""}" style="width:60px"><i style="width:${x.score}%"></i></span><span class="num">${x.score}</span></span>
+      <span class="why">${x.why.map(w=>`<span class="chip">${w}</span>`).join("")}${S.queue.find(q=>q.id===x.id)?'<span class="chip good">Approved</span>':""}</span></button>`).join("") || `<div class="empty" style="margin:12px">No patients in this list.</div>`;
+    $$("[data-p]",root).forEach(b=>b.onclick=()=>detail(+b.dataset.p));
+  }
+  function savings(p){
+    const visits = p.why.some(w=>/Perio/.test(w)) ? 4 : 2;
+    const without = visits*FEES.cleaning + 2*FEES.exam + FEES.xray + p.tx;
+    const withPlan = FEES.plan*12 + p.tx*(1-FEES.disc);
+    return {visits, without, withPlan, save: without-withPlan};
+  }
+  function msg(p){
+    const first=p.name.split(" ")[0];
+    if (p.seg==="enroll"){ const s=savings(p);
+      if (S.ch==="SMS") return `Hi ${first}, it's Bright Harbor Dental. Ahead of your visit tomorrow: our in-house membership is $35/month and covers your cleanings, exams and X-rays${p.tx?`, plus 15% off your recommended treatment`:""}. Based on your care plan you'd save about ${money(s.save,"full")} this year. We can set it up at check-in. Reply STOP to opt out.`;
+      if (S.ch==="Email") return `Subject: A simpler way to pay for your care, ${first}\n\nHi ${first},\n\nYou're with us tomorrow (${p.appt.split("·")[0].replace("Tomorrow ","")}). Many of our patients without dental insurance join our membership plan: $35 a month for ${s.visits} cleanings, 2 exams and X-rays each year${p.tx?", and 15% off treatment like the work Dr. Patel recommended":""}.\n\nFor your care plan, that comes to about ${money(s.withPlan,"full")} a year instead of ${money(s.without,"full")}.\n\nWe'll have the details ready at check-in.\n\nBright Harbor Dental`;
+      return `Front desk script (check-in):\n• "${first}, I see you're paying out of pocket. Have you heard about our membership plan?"\n• Show the savings card: ${money(s.without,"full")} → ${money(s.withPlan,"full")} this year.\n• ${p.tx?"Mention 15% off the recommended treatment.":"Mention family members can join too."}\n• Enroll on the tablet. Billing starts today.`;
+    }
+    if (p.seg==="retain") return S.ch==="Front desk"?`Call script:\n• Thank ${first} for being a member since ${p.appt.replace("Member since ","")}.\n• Mention the issue: ${p.why[0].toLowerCase()}.\n• Offer to book the next cleaning while on the phone.\n• Update payment details by secure link.`:`Hi ${first}, it's Bright Harbor Dental. ${/Card/.test(p.why[0])?"Your membership payment didn't go through, so your benefits may pause. You can update your card here: brightharbor.dental/pay (secure link).":"You still have cleanings included in your membership this year."} Want us to hold a cleaning time for you next week? Reply YES and we'll text options.`;
+    return S.ch==="Front desk"?`Call script:\n• Reconnect: it's been a while since ${p.appt.replace("Last visit ","")}.\n• Dr. Patel recommended ${p.why[1].replace(" pending","").replace("Unscheduled ","").toLowerCase()} and wants to check in.\n• Offer membership: 15% off saves ${money(p.tx*0.15,"full")}.\n• Book a consult.`:`Hi ${first}, we miss you at Bright Harbor Dental! Dr. Patel wanted to follow up on the ${p.why[1].replace(" pending","").replace("Unscheduled ","").toLowerCase()} we discussed. Members save 15% on treatment, about ${money(p.tx*0.15,"full")} for you. Reply YES and we'll text a few times this week.`;
+  }
+  function value(p){
+    if (p.seg==="enroll") return FEES.plan*12 + p.tx*0.5;   // membership + 50% treatment acceptance (illustrative)
+    if (p.seg==="retain") return FEES.plan*12;
+    return p.tx*0.4;
+  }
+  function detail(id){
+    S.sel=id; list(); const p=CL_PATIENTS.find(x=>x.id===id);
+    walkTo(root, p.seg==="retain"?4:Math.max(2,$$(".walk li.done",root).length));
+    const s=savings(p);
+    $("#pdet",root).innerHTML = `
+      <div class="panel-h">${p.name} <span class="chip ${p.seg==="retain"?"bad":"accent"}">${{enroll:"Membership offer",retain:"Churn risk",react:"Reactivation"}[p.seg]} · score ${p.score}</span></div>
+      <div class="panel-b">
+        <p class="small"><b>Why the agent flagged ${p.name.split(" ")[0]}:</b> ${p.ctx}</p>
+        ${p.seg==="enroll"?`<div class="compare"><div><span class="small muted">Self-pay this year</span><b>${money(s.without,"full")}</b><span class="small muted">${s.visits} cleanings, 2 exams, X-rays${p.tx?", treatment":""}</span></div><div style="border-color:var(--accent)"><span class="small muted">With membership</span><b style="color:var(--accent)">${money(s.withPlan,"full")}</b><span class="small muted">$35/mo + 15% off treatment · saves ${money(s.save,"full")}</span></div></div><p class="small muted">Prices come from this practice's fee schedule and plan terms. The model writes the explanation; it never sets prices.</p>`:""}
+        ${p.seg==="react"?`<div class="compare"><div><span class="small muted">Unscheduled treatment</span><b>${money(p.tx,"full")}</b></div><div><span class="small muted">Inactive</span><b>${p.why[0].split(" ")[0]} mo</b></div></div>`:""}
+        ${p.seg==="retain"?`<div class="compare"><div><span class="small muted">Membership value at risk</span><b>${money(FEES.plan*12,"full")}/yr</b></div><div><span class="small muted">Risk drivers</span><b style="font-size:15px">${p.why.join(" · ")}</b></div></div>`:""}
+        <div style="display:flex;gap:6px;margin:12px 0 6px;flex-wrap:wrap" class="seg-tabs">${["SMS","Email","Front desk"].map(c=>`<button data-ch="${c}" class="${S.ch===c?"on":""}">${c}</button>`).join("")}</div>
+        <label class="small muted" for="msg">Draft written by the agent (edit before approving)</label>
+        <textarea id="msg" rows="7">${esc(msg(p))}</textarea>
+      </div>
+      <div class="actions"><button class="btn primary sm" id="ok">${S.queue.find(q=>q.id===id)?"Approved ✓":"Approve & queue"}</button><button class="btn sm" id="hd">Add to morning huddle</button><button class="btn sm" id="sk">Skip</button></div>`;
+    $$("[data-ch]",root).forEach(b=>b.onclick=()=>{S.ch=b.dataset.ch; detail(id);});
+    $("#ok",root).onclick=()=>{ if(!S.queue.find(q=>q.id===id)){ S.queue.push({id,name:p.name,ch:S.ch,seg:p.seg,val:value(p)}); } renderQ(); kpis(); detail(id); toast(`${S.ch} for ${p.name} approved and queued`); walkTo(root, p.seg==="retain"?4:3); };
+    $("#hd",root).onclick=()=>toast(`${p.name} added to tomorrow's huddle sheet`);
+    $("#sk",root).onclick=()=>toast("Skipped. The agent will learn from this choice.");
+  }
+  function renderQ(){
+    $("#qn",root).textContent=S.queue.length+" approved";
+    $("#queue",root).innerHTML = S.queue.length? S.queue.map(q=>`<div><span>${q.name} · ${q.ch} · ${{enroll:"Enroll",retain:"Retain",react:"Reactivate"}[q.seg]}</span><b class="num">${money(q.val,"full")}/yr</b></div>`).join("") + `<p class="small muted" style="margin-top:8px">Value = membership fees plus an assumed 50% acceptance of recommended treatment (40% for reactivation). Illustrative.</p>` : `<span class="muted">Approved messages land here and go out through Clerri's patient messaging.</span>`;
+  }
+  $$(".seg-tabs [data-s]",root).forEach(b=>b.onclick=()=>{S.seg=b.dataset.s; S.sel=null; list(); $("#pdet",root).innerHTML=hint(); if(S.seg==="retain") walkTo(root,3);});
+  $("#loc",root).onchange=e=>{S.loc=e.target.value; S.sel=null; kpis(); list(); $("#pdet",root).innerHTML=hint(); walkTo(root,5); toast(`Showing ${S.loc}. Group rollup: 50 locations, ${fmtN(50*600)} eligible patients.`);};
+  $("#rescan",root).onclick=async()=>{
+    const log=$("#log",root); log.style.display="block"; log.innerHTML=""; $("#rescan",root).disabled=true;
+    await streamLog(log,[
+      {t:`Reading tomorrow's schedule for ${S.loc} (Open Dental)…`},
+      {t:"34 appointments · 9 self-pay or maxed-out insurance",c:"ok"},
+      {t:"Scoring membership propensity (visit history, coverage, treatment plan)"},
+      {t:"Checking 412 active members for payment failures and missed recalls"},
+      {t:"Finding inactive patients with unscheduled treatment (18+ months)"},
+      {t:"Computing savings from the practice fee schedule"},
+      {t:"Drafted messages for review. Nothing sent.",c:"ok"}],330);
+    $("#scanned",root).textContent="Morning scan completed just now"; $("#rescan",root).disabled=false;
+  };
+  const hint=()=>`<div class="panel-b"><div class="empty">Select a patient to see why the agent flagged them and the drafted outreach.</div></div>`;
+  kpis(); list(); $("#pdet",root).innerHTML=hint();
+};
+
+/* ================= PROTOTYPE 3: Titan Cloud ================= */
+function rng(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const TI_ALERTS = [
+ {id:"a1",site:118,city:"Midland",sev:"crit",title:"Inventory variance −402 gal (7 days)",sub:"Regular 87 · 1.7% of sales · 3σ above baseline",x:300,y:250,risk:33600,
+  steps:["Pull hourly ATG readings, Tank 1 (Regular 87), last 14 days","Pull 3 deliveries (BOL) and ATG delivery receipts","Pull POS and dispenser sales by hose","Temperature-compensate volumes to 60°F","Run 5 root-cause tests"],
+  hyp:[["Dispenser meter drift (D4)",86,"Variance tracks D4 volume; D4 calibration is 41 days overdue; ratio of tank drop to sales on D4 = 1.009"],["Short delivery",61,"Nov 16 BOL 8,800 gal vs ATG receipt 8,610 gal (−190)"],["Theft / unauthorized dispensing",12,"No flow events outside store hours"],["Leak / release",7,"No loss during overnight idle; SIR test passed Nov 1"],["Temperature effect",5,"Already compensated; residual < 0.1%"]],
+  root:"Two causes. Dispenser 4 is under-registering by about 0.9%, which accounts for 212 gal. A short delivery on Nov 16 accounts for the remaining 190 gal.",
+  series:[0,-12,-28,-41,-55,-70,-84,-99,-301,-318,-334,-352,-370,-402],
+  acts:[["Create calibration work order (D4)","Work order WO-58114 sent to Permian Pump Services, due within 48 hours",33300],["File carrier claim for 190 gal","Claim CL-2207 drafted for Basin Fuel Haulers with BOL and ATG evidence",580]]},
+ {id:"a2",site:91,city:"Odessa",sev:"warn",title:"Delivery short 190 gal",sub:"Premium 91 · BOL 8,500 vs received 8,310",x:262,y:262,risk:640,
+  steps:["Match BOL to ATG delivery window","Compare temperature at load vs drop","Check probe health on Tank 3"],
+  hyp:[["Short load from carrier",82,"Third short drop from same carrier this quarter"],["Temperature contraction",21,"Product 9°F cooler at drop, explains ~40 gal"],["ATG probe fault",8,"Probe self-test normal"]],
+  root:"Carrier short load. Temperature explains about 40 gallons; the other 150 gallons are unexplained.",
+  acts:[["File carrier claim for 150 gal","Claim CL-2208 sent to Basin Fuel Haulers",505],["Flag carrier for scorecard review","Carrier scorecard updated: 3 short loads this quarter",0]]},
+ {id:"a3",site:163,city:"San Angelo",sev:"warn",title:"Runout risk in 38 hours",sub:"Premium 91 · 1,140 gal left · next delivery in 52h",x:380,y:300,risk:4900,
+  steps:["Forecast demand from last 8 weeks of sales","Check scheduled deliveries and route capacity","Estimate lost sales if tank runs dry"],
+  hyp:[["Weekend demand spike",78,"Rodeo weekend; last year's sales were +34%"],["Forecast model drift",22,"Forecast error 6% this month, within tolerance"]],
+  root:"Weekend demand will empty the tank about 14 hours before the scheduled delivery.",
+  acts:[["Pull delivery forward to tomorrow 6:00 AM","Load added to Route 12; carrier confirmed",4900]]},
+ {id:"a4",site:207,city:"Lubbock",sev:"crit",title:"Line leak detector test failed",sub:"Diesel · annual LLD test · compliance",x:290,y:120,risk:25000,
+  steps:["Pull LLD test history","Check pressure and flow during the test window","Check permit and inspection calendar"],
+  hyp:[["Faulty leak detector",64,"Pressure held steady while LLD reported a fail"],["Actual line leak",29,"No inventory loss on Tank 4; can't be ruled out without a retest"]],
+  root:"Most likely the detector itself. Under state rules, the line stays out of service until a retest.",
+  acts:[["Dispatch technician and lock the line","WO-58115 priority 1; dispenser 6 locked for diesel",25000],["Notify compliance manager","Compliance packet with test history sent",0]]},
+ {id:"a5",site:42,city:"Abilene",sev:"warn",title:"ATG probe intermittent",sub:"Tank 2 · 14 dropped readings in 24h",x:430,y:190,risk:1200,
+  steps:["Pull probe diagnostics","Check other tanks on the same console"],
+  hyp:[["Probe cable fault",71,"Drops line up with pump-on events"],["Console firmware",18,"Same version runs without errors at 40 other sites"]],
+  root:"The probe cable on Tank 2 is most likely at fault.",
+  acts:[["Create work order for probe cable","WO-58116 scheduled with Big Country Petroleum Service",1200]]}
+];
+PROTO["titan-cloud"] = function(body){
+  const S={sel:null, resolved:{}, saved:0};
+  const r=rng(7); const sites=[];
+  for(let i=0;i<250;i++){ sites.push({x:60+r()*500, y:40+r()*300}); }
+  body.innerHTML = `
+  <div class="proto-shell">
+    <div class="app">
+      <div class="app-bar"><span class="dot"></span><span class="t">Fuel Operations Command Center</span><span class="muted small">Titan Cloud · concept · synthetic fleet</span><span style="margin-left:auto" class="chip accent">Lone Star Fuel Co. · 250 sites</span></div>
+      <div class="app-body">
+        <div class="kpis">
+          <div class="kpi"><span>Sites online</span><b>248 / 250</b></div>
+          <div class="kpi"><span>Open alerts</span><b id="t2">${TI_ALERTS.length}</b></div>
+          <div class="kpi"><span>Annualized value at risk</span><b id="t3">${money(TI_ALERTS.reduce((a,x)=>a+x.risk,0),"full")}</b></div>
+          <div class="kpi hl"><span>Value secured by agent</span><b id="t4">$0</b></div>
+        </div>
+        <div class="cols" style="grid-template-columns:minmax(0,1fr) 320px">
+          <div class="panel"><div class="panel-h">West Texas fleet (schematic) <span class="small muted" style="font-weight:400"><span style="color:var(--bad)">●</span> critical · <span style="color:var(--warn)">●</span> warning · <span style="color:var(--good)">●</span> resolved</span></div>
+            <div class="panel-b"><svg class="map" viewBox="0 0 620 380" role="img" aria-label="Map of 250 sites with alert sites highlighted" id="map"></svg></div></div>
+          <div class="panel"><div class="panel-h">Alert queue <span class="chip" id="aq">${TI_ALERTS.length} open</span></div><div id="alerts"></div></div>
+        </div>
+        <div id="inv"></div>
+      </div>
+    </div>
+    ${walkPanel("VP Fuel Operations at a c-store chain", [
+      ["Show the fleet","250 sites; five alerts would each take an analyst hours to work."],
+      ["Open the Midland variance","402 gallons gone in a week. Today an analyst pulls four systems to find out why."],
+      ["Investigate with the agent","It runs every root-cause test and ranks them with evidence."],
+      ["Approve the fixes","Calibration work order and carrier claim, drafted and ready."],
+      ["Clear the queue","Run the agent on the other alerts; value secured rolls up."]])}
+  </div>`;
+  const root=body;
+  $("[data-reset]",root).onclick=()=>PROTO["titan-cloud"](body);
+  function drawMap(){
+    const m=$("#map",root);
+    let h=`<g stroke="var(--line)" stroke-width="1">${[1,2,3,4,5].map(i=>`<line x1="${i*103}" y1="0" x2="${i*103}" y2="380"/>`).join("")}${[1,2,3].map(i=>`<line x1="0" y1="${i*95}" x2="620" y2="${i*95}"/>`).join("")}</g>`;
+    h+=sites.map(s=>`<circle cx="${s.x.toFixed(1)}" cy="${s.y.toFixed(1)}" r="2.6" fill="var(--muted)" opacity=".45"/>`).join("");
+    h+=TI_ALERTS.map(a=>{const done=S.resolved[a.id]; const col=done?"var(--good)":a.sev==="crit"?"var(--bad)":"var(--warn)";
+      return `<g data-a="${a.id}" style="cursor:pointer">${done||reduce?"":`<circle class="pulse" cx="${a.x}" cy="${a.y}" r="5" fill="none" stroke="${col}" stroke-width="2"/>`}<circle cx="${a.x}" cy="${a.y}" r="${S.sel===a.id?8:6}" fill="${col}" stroke="var(--surface)" stroke-width="2"/><text x="${a.x+10}" y="${a.y+4}" font-size="12" fill="var(--ink)" font-family="IBM Plex Sans, sans-serif">#${a.site} ${a.city}</text></g>`;}).join("");
+    m.innerHTML=h;
+    $$("[data-a]",m).forEach(g=>g.onclick=()=>open(g.dataset.a));
+  }
+  function alerts(){
+    const open_ = TI_ALERTS.filter(a=>!S.resolved[a.id]).length;
+    $("#aq",root).textContent=open_+" open"; $("#t2",root).textContent=open_;
+    $("#alerts",root).innerHTML=TI_ALERTS.map(a=>`<button class="alert ${S.sel===a.id?"sel":""}" data-al="${a.id}"><span class="sev ${S.resolved[a.id]?"ok":a.sev}"></span><span><b>#${a.site} ${a.city} · ${a.title}</b><span class="small muted">${a.sub}</span>${S.resolved[a.id]?'<br><span class="chip good" style="margin-top:4px">Resolved by agent</span>':""}</span></button>`).join("");
+    $$("[data-al]",root).forEach(b=>b.onclick=()=>open(b.dataset.al));
+  }
+  function chart(series){
+    const W=520,H=170,p=34, min=Math.min(...series)*1.1, n=series.length;
+    const X=i=>p+i*(W-p-10)/(n-1), Y=v=>10+(v/min)*(H-40);
+    const pts=series.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(" ");
+    const ticks=[0,-100,-200,-300,-400];
+    return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" role="img" aria-label="Cumulative variance, falling to −402 gallons over 14 days">
+      ${ticks.map(t=>`<line x1="${p}" x2="${W-10}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--line)"/><text x="${p-6}" y="${Y(t)+4}" font-size="10" text-anchor="end" fill="var(--muted)">${t}</text>`).join("")}
+      <polygon points="${X(0)},${Y(0)} ${pts} ${X(n-1)},${Y(0)}" fill="var(--bad)" opacity=".12"/>
+      <polyline points="${pts}" fill="none" stroke="var(--bad)" stroke-width="2"/>
+      <circle cx="${X(n-1)}" cy="${Y(series[n-1])}" r="4" fill="var(--bad)"/>
+      <line x1="${X(8)}" x2="${X(8)}" y1="10" y2="${H-30}" stroke="var(--warn)" stroke-dasharray="3 3"/>
+      <text x="${X(8)+4}" y="22" font-size="10" fill="var(--warn)">Nov 16 delivery −190 gal</text>
+      <text x="${p}" y="${H-10}" font-size="10" fill="var(--muted)">Nov 9</text><text x="${W-10}" y="${H-10}" font-size="10" text-anchor="end" fill="var(--muted)">Nov 22</text>
+      <text x="${X(1)}" y="${Y(-55)+26}" font-size="10" fill="var(--muted)">steady drift ≈ 15 gal/day</text>
+    </svg>`;
+  }
+  function open(id){
+    S.sel=id; drawMap(); alerts();
+    const a=TI_ALERTS.find(x=>x.id===id);
+    if (id==="a1") walkTo(root, Math.max(2,$$(".walk li.done",root).length));
+    $("#inv",root).innerHTML=`
+    <div class="detail">
+      <div class="panel-h">Site #${a.site} ${a.city} · ${a.title}<span class="chip ${a.sev==="crit"?"bad":"warn"}">${money(a.risk,"full")} annualized at risk</span></div>
+      <div class="detail-grid">
+        <div><div class="eyebrow" style="margin-bottom:6px">Investigation</div>
+          ${S.resolved[id]||S["inv_"+id]?"":`<button class="btn primary" id="go">Investigate with agent</button>`}
+          <div class="log" id="ilog" style="margin-top:10px;${S["inv_"+id]?"":"display:none"}"></div>
+          ${a.series?`<div style="margin-top:12px"><div class="eyebrow" style="margin-bottom:4px">Cumulative variance, Tank 1 (gal)</div>${chart(a.series)}</div>`:""}</div>
+        <div id="res">${S["inv_"+id]?results(a):`<div class="empty">The agent will test each likely cause against ATG, delivery, POS and maintenance data, then propose fixes.</div>`}</div>
+      </div>
+    </div>`;
+    if (S["inv_"+id]) { $("#ilog",root).innerHTML=a.steps.map(s=>`<div><span class="ok">✓ ${esc(s)}</span></div>`).join(""); bindActs(a); }
+    const go=$("#go",root);
+    if (go) go.onclick=async()=>{
+      go.disabled=true; go.textContent="Investigating…"; if(id==="a1") walkTo(root,3);
+      const log=$("#ilog",root); log.style.display="block";
+      await streamLog(log, a.steps.map(s=>({t:s})).concat([{t:"Ranked causes with evidence",c:"ok"}]), 420);
+      S["inv_"+id]=true; go.remove(); $("#res",root).innerHTML=results(a); bindActs(a);
+    };
+  }
+  function results(a){
+    return `<div class="eyebrow" style="margin-bottom:6px">Likely causes</div>
+      ${a.hyp.map(h=>`<div class="hyp"><span>${h[0]}</span><div class="bar ${h[1]>50?"bad":""}"><i style="width:${h[1]}%"></i></div><b class="num small">${h[1]}%</b><span class="ev">${h[2]}</span></div>`).join("")}
+      <p class="small" style="margin:12px 0"><b>Root cause:</b> ${a.root}</p>
+      <div class="eyebrow" style="margin-bottom:6px">Recommended fixes</div>
+      ${a.acts.map((x,i)=>`<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line)"><span class="small">${x[0]}${x[2]?` <span class="muted">· ${money(x[2],"full")}</span>`:""}</span><button class="btn sm ${S[a.id+"_"+i]?"":"primary"}" data-act="${i}" ${S[a.id+"_"+i]?"disabled":""}>${S[a.id+"_"+i]?"Done ✓":"Approve"}</button></div>`).join("")}`;
+  }
+  function bindActs(a){
+    $$("[data-act]",root).forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.act, x=a.acts[i]; S[a.id+"_"+i]=true; S.saved+=x[2];
+      $("#t4",root).textContent=money(S.saved,"full"); toast(x[1]);
+      if (a.acts.every((_,j)=>S[a.id+"_"+j])) { S.resolved[a.id]=true; alerts(); drawMap(); if(a.id==="a1") walkTo(root,4); if(TI_ALERTS.every(z=>S.resolved[z.id])) walkTo(root,5); }
+      $("#res",root).innerHTML=results(a); bindActs(a);
+    });
+  }
+  drawMap(); alerts();
+  $("#inv",root).innerHTML=`<div class="empty" style="margin-top:14px">Select an alert on the map or in the queue to investigate it.</div>`;
+};
+
+/* ---------- build guides ---------- */
+const BUILD = {
+ pakenergy:{ weeks:12,
+  arch:[["Sources","Contracts (PDF), run tickets, SCADA volumes, invoices, credit memos"],["Contract term extraction","Rates, escalators, MVCs, tiers, surcharges → structured terms"],["Reconciliation engine","Deterministic expected-vs-billed math in SQL/Python"],["Investigation agent","Claude with tools; builds cited evidence packs",1],["Human approval","Billing analyst approves, disputes or edits"],["PakEnergy Accounting","Supplemental invoice, credit memo, rate table update"],["Measurement","$ found, $ approved, $ collected, precision, AI cost"]],
+  steps:[
+   ["Discovery and data access","Weeks 1",[["Goal","Pick 2 design-partner customers and agree the leakage hypotheses."],["Data","20–30 contracts, 12 months of invoices, run tickets and SCADA exports."],["Output","Data room, baseline of billing errors found in past audits."],["Done when","Data loads end to end for one customer."]]],
+   ["Contract term extraction","Weeks 1–2",[["Goal","Turn every contract into a billing-term schema."],["Build","Extraction schema: base rate, escalator formula and cap, MVC, deficiency rate, tiers, surcharge triggers, credit rules."],["Quality","Gold set of 25 hand-verified contracts; target ≥95% field accuracy; low-confidence fields go to review."]],`{
+  "contract_id": "GA-2291",
+  "base_rate": {"value": 0.42, "unit": "USD/Mcf"},
+  "escalator": {"index": "CPI-U", "cap_pct": 3.5, "effective": "Jan-01"},
+  "mvc": {"volume": 30000, "unit": "Mcf/d", "period": "quarter"},
+  "source_spans": [{"clause": "4.2", "page": 7}]
+}`],
+   ["Reconciliation engine","Weeks 2–3",[["Goal","Compute what should have been billed, period by period."],["Build","SQL/Python rules engine joining terms × tickets × SCADA × invoices; every number reproducible."],["Rule","The language model never does billing arithmetic."],["Done when","Engine reproduces known historical errors."]]],
+   ["Investigation agent","Weeks 3–4",[["Goal","Explain each discrepancy like a senior billing analyst would."],["Tools","get_clause, query_tickets, query_invoices, recompute_period, draft_correction"],["Output","Evidence pack: clause citation, evidence list, recalculation, recommended action, confidence."]],`agent.tools = [get_clause, query_tickets, query_invoices,
+               recompute_period, draft_correction]
+for exception in engine.exceptions(cycle="2026-11"):
+    pack = agent.investigate(exception, require_citations=True)
+    review_queue.add(pack)`],
+   ["Review workflow and UI","Weeks 4–5",[["Goal","The Revenue Assurance Center in this prototype."],["Build","Exception queue, evidence drawer, approve / dispute / notify; writes drafts to PakEnergy Accounting via API; full audit log."],["Controls","Role-based approval limits; nothing posts without a human."]]],
+   ["Pilot and measure","Weeks 5–6",[["Goal","Run on 12 months of history for 2 customers, then on the live cycle."],["Metrics","$ identified, $ approved, $ collected, precision (approved ÷ flagged), analyst hours saved, AI cost per finding."],["Exit criteria","≥80% precision and ≥0.5% of eligible billing identified."]]],
+   ["Productize as a PakEnergy module","Weeks 7–12",[["Goal","Ship as a priced, multi-tenant add-on to PakEnergy Accounting."],["Build","Tenant isolation, onboarding flow for new contract types, packaging and pricing (e.g. subscription plus share of recovered revenue)."]]]
+  ]},
+ clerri:{ weeks:10,
+  arch:[["Sources","PMS schedules, patient ledgers, treatment plans, Clerri membership and billing"],["Feature pipeline","Coverage, visit cadence, unscheduled treatment, payment events"],["Scoring models","Enroll, churn and reactivation propensity"],["Outreach agent","Claude drafts savings explanations and messages",1],["Staff approval","Front desk approves, edits or skips"],["Clerri messaging","SMS, email, huddle sheet, card-update links"],["Measurement","Conversion lift, revenue, retention, AI cost"]],
+  steps:[
+   ["PMS integration and compliance","Week 1",[["Goal","Data from 3–5 pilot practices through Clerri's existing PMS connectors."],["Controls","BAA in place, PHI minimization, consent and opt-out flags respected."],["Done when","Tomorrow's schedule and patient history load for one practice."]]],
+   ["Propensity scoring","Weeks 1–2",[["Goal","Rank who to offer, retain or reactivate."],["Build","Gradient-boosted models on coverage, visit cadence, treatment value, payment events; validated on past enrollments."],["Output","Score plus top reasons for every patient."]]],
+   ["Savings calculator","Week 2",[["Goal","Correct, practice-specific savings for each patient."],["Build","Deterministic calculator from the practice fee schedule and plan terms. The model only explains the result."]],`savings = fee_schedule.annual_cost(patient.care_plan)
+        - (plan.monthly * 12
+           + patient.treatment * (1 - plan.discount))`],
+   ["Outreach agent","Weeks 2–3",[["Goal","Draft SMS, email and front-desk scripts in the practice's voice."],["Guardrails","Approved claims only, TCPA-compliant wording, opt-out language, no clinical advice."],["Done when","Office managers approve ≥80% of drafts unedited."]]],
+   ["Retention and reactivation","Weeks 3–4",[["Goal","Catch churn and win back inactive patients."],["Triggers","Card declined or expiring, unused benefits, missed recall, 18+ months inactive with unscheduled treatment."]]],
+   ["Embed in Clerri","Weeks 4–5",[["Goal","The Dental Growth Center inside Clerri's product."],["Build","Daily 6 AM scan, ranked lists, approval queue, group rollup across locations."]]],
+   ["Pilot and measure","Weeks 5–10",[["Goal","Prove lift with a controlled test."],["Design","Matched pilot and control locations for 30 days."],["Metrics","Enrollment conversion, churn, reactivation bookings, membership revenue, AI cost per enrollment."]]]
+  ]},
+ "titan-cloud":{ weeks:14,
+  arch:[["Sources","ATG readings, deliveries/BOLs, POS and dispenser sales, maintenance and compliance records"],["Reconciliation baseline","Temperature-compensated book vs physical, per tank"],["Root-cause test library","Drift, short load, leak, theft, probe, temperature"],["Investigation agent","Claude runs tests, ranks causes, cites evidence",1],["Operator approval","Approve work orders, claims and reschedules"],["Titan Cloud modules","Maintenance, Supply & Logistics, Compliance"],["Measurement","Gallons recovered, time to resolve, false positives, AI cost per site"]],
+  steps:[
+   ["Data access","Week 1",[["Goal","One design-partner fleet of about 250 sites."],["Data","Hourly ATG, deliveries/BOLs, POS by hose, maintenance tickets, 12 months."],["Done when","One site's full fuel ledger rebuilds from source data."]]],
+   ["Reconciliation baseline","Weeks 1–2",[["Goal","Trustworthy daily variance per tank."],["Build","Temperature compensation to 60°F, per-tank thresholds from history, alert scoring."]]],
+   ["Root-cause test library","Weeks 2–4",[["Goal","Codify how expert fuel analysts investigate."],["Tests","Meter drift by hose, short delivery, overnight-idle leak test, after-hours flow, probe diagnostics, tank chart error."],["Rule","Each test is deterministic code returning a score and evidence."]],`def test_meter_drift(site, tank, window):
+    by_hose = pos.sales_by_hose(site, window)
+    drop = atg.tank_drop(site, tank, window)
+    ratio = drop / by_hose.sum()
+    return Score(p=sigmoid(ratio - 1.0, k=900),
+                 evidence=by_hose.top_contributors())`],
+   ["Investigation agent","Weeks 4–5",[["Goal","Pick tests, combine evidence and explain the most likely cause."],["Tools","run_test, get_timeseries, get_deliveries, create_work_order, draft_claim"],["Output","Ranked causes, root-cause summary, dollar impact, recommended fixes."]]],
+   ["Action workflows","Weeks 5–6",[["Goal","Turn findings into approved actions."],["Build","Work orders through Titan Maintenance, carrier claims with evidence, delivery changes through Supply & Logistics, compliance packets."]]],
+   ["Command center UI","Weeks 6–7",[["Goal","The Fuel Operations Command Center in this prototype."],["Build","Fleet map, alert queue, investigation panel, approvals, value secured."]]],
+   ["Pilot, measure, productize","Weeks 7–14",[["Goal","Prove value, then sell per site."],["Metrics","Gallons and $ recovered, mean time to resolve, false-positive rate, analyst hours, AI cost per site."],["Packaging","Per-site monthly add-on for Titan Cloud Fuel Analytics customers."]]]
+  ]}
+};
+function renderBuild(body, B){
+  const ranges = B.steps.map(s=>{const m=s[1].match(/(\d+)(?:–(\d+))?/); return [+m[1], +(m[2]||m[1])];});
+  const done = new Set();
+  body.innerHTML = `
+    <h2 style="font-size:20px;margin-bottom:10px">Architecture</h2>
+    <div class="arch">${B.arch.map((a,i)=>`${i?'<span class="arr" aria-hidden="true">→</span>':""}<div class="node ${a[2]?"ai":""}"><b>${a[0]}</b><span class="muted">${a[1]}</span></div>`).join("")}</div>
+    <h2 style="font-size:20px;margin-bottom:10px">Timeline <span class="small muted" style="font-family:var(--body);font-weight:400">· weeks</span></h2>
+    <div class="tablewrap"><div class="gantt" style="--wk:${B.weeks}"><div class="hd" style="text-align:left;padding-left:8px">Workstream</div>${Array.from({length:B.weeks},(_,i)=>`<div class="hd">${i+1}</div>`).join("")}
+      ${B.steps.map((s,i)=>`<div class="lbl">${i+1}. ${s[0]}</div>${Array.from({length:B.weeks},(_,w)=>`<div class="cell ${w+1>=ranges[i][0]&&w+1<=ranges[i][1]?"on":""} ${i===B.steps.length-1&&w+1>=ranges[i][0]&&w+1<=ranges[i][1]?"ms":""}"></div>`).join("")}`).join("")}
+    </div></div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px"><h2 style="font-size:20px">Step-by-step build</h2><span class="small muted" id="prog">0 of ${B.steps.length} steps complete</span></div>
+    <div class="steps">${B.steps.map((s,i)=>`
+      <div class="step ${i===0?"open":""}" data-i="${i}">
+        <button class="step-h" aria-expanded="${i===0}"><span class="n">${i+1}</span><span class="tt"><b>${s[0]}</b><span class="small muted">${s[1]}</span></span><span class="muted" aria-hidden="true">▾</span></button>
+        <div class="step-b"><dl class="kv">${s[2].map(kv=>`<dt>${kv[0]}</dt><dd>${kv[1]}</dd>`).join("")}</dl>${s[3]?`<pre><code>${esc(s[3])}</code></pre>`:""}
+        <label><input type="checkbox" id="chk-${i}"> Mark step complete</label></div>
+      </div>`).join("")}</div>
+    <div style="height:40px"></div>`;
+  $$(".step",body).forEach(st=>{
+    $(".step-h",st).onclick=()=>{st.classList.toggle("open"); $(".step-h",st).setAttribute("aria-expanded",st.classList.contains("open"));};
+    $("input",st).onchange=e=>{ const i=+st.dataset.i; e.target.checked?done.add(i):done.delete(i); st.classList.toggle("done",e.target.checked); $("#prog",body).textContent=`${done.size} of ${B.steps.length} steps complete`; };
+  });
+}
+
+/* ---------- calculators ---------- */
+const CALC = {
+ pakenergy:{ title:"Revenue Assurance business case", note:"Illustrative. Excludes collection rate, implementation cost and AI operating cost.",
+  inputs:[["bill","Eligible annual billing (one customer)",10,500,10,100,v=>"$"+v+"M"],["leak","Leakage recovered",0.25,2,0.25,1,v=>v+"%"],["hrs","Billing analyst hours saved per month",20,400,10,230,v=>v],["adopt","PakEnergy customers adopting the module",50,800,10,230,v=>v],["price","Module price per customer per year",6,60,2,24,v=>"$"+v+"K"]],
+  out:v=>{const rec=v.bill*1e6*v.leak/100, lab=v.hrs*12*55, arr=v.adopt*v.price*1e3;
+   return [["Customer: recovered revenue (EBITDA)",money(rec,"full")],["Customer: analyst capacity value at $55/hr",money(lab,"full")],["Customer: total annual value",money(rec+lab,"full"),1],["PakEnergy: new ARR",money(arr,"full"),1],["Customer ROI on module price",(((rec+lab)/(v.price*1e3))).toFixed(0)+"×"]];}},
+ clerri:{ title:"Membership Growth business case", note:"Illustrative. Assumes full-year enrollment; excludes churn timing and implementation cost. Benefits accrue to practices; Clerri earns the module fee.",
+  inputs:[["loc","Dental locations",5,200,5,50,v=>v],["elig","Eligible patients per location",100,1500,50,600,v=>v],["up","Enrollment uplift (percentage points)",2,20,1,10,v=>v+" pts"],["fee","Monthly membership fee",20,60,1,35,v=>"$"+v],["churn","Churned members saved per location per year",0,40,2,10,v=>v],["mod","AI module price per location per month",50,400,10,150,v=>"$"+v]],
+  out:v=>{const mem=v.loc*v.elig*v.up/100, rev=mem*v.fee*12, ret=v.loc*v.churn*v.fee*12, cost=v.loc*v.mod*12;
+   return [["Additional members",fmtN(mem)],["New membership revenue",money(rev,"full")],["Revenue retained from saved churn",money(ret,"full")],["Total annual revenue for the group",money(rev+ret,"full"),1],["Group's cost of the AI module (Clerri ARR)",money(cost,"full")],["Return on module cost",((rev+ret)/cost).toFixed(1)+"×",1]];}},
+ "titan-cloud":{ title:"Fuel Loss Investigation business case", note:"Illustrative. Gross savings before AI operating and implementation costs.",
+  inputs:[["sites","Sites in fleet",25,2000,25,250,v=>v],["loss","Addressable fuel loss per site per year",1000,10000,250,4000,v=>"$"+fmtN(v)],["lr","Fuel loss reduction",5,40,1,25,v=>v+"%"],["mnt","Maintenance cost per site per year",2000,15000,500,6000,v=>"$"+fmtN(v)],["mr","Maintenance savings",5,30,1,15,v=>v+"%"],["del","Delivery cost per site per year",4000,25000,1000,12000,v=>"$"+fmtN(v)],["dr","Delivery optimization",2,15,1,8,v=>v+"%"],["pr","Price per site per month",10,80,5,25,v=>"$"+v]],
+  out:v=>{const a=v.sites*v.loss*v.lr/100, b=v.sites*v.mnt*v.mr/100, c=v.sites*v.del*v.dr/100, cost=v.sites*v.pr*12;
+   return [["Fuel loss reduction",money(a,"full")],["Maintenance savings",money(b,"full")],["Delivery optimization",money(c,"full")],["Gross annual savings (EBITDA)",money(a+b+c,"full"),1],["Annual module cost (Titan Cloud ARR)",money(cost,"full")],["Return on module cost",((a+b+c)/cost).toFixed(1)+"×",1]];}}
+};
+function renderCalc(body, C){
+  const vals={};
+  body.innerHTML=`<div class="calcgrid">
+    <div class="card" style="padding:18px"><h2 style="font-size:20px;margin-bottom:14px">${C.title}</h2>
+      ${C.inputs.map(i=>{vals[i[0]]=i[5]; return `<div class="slider"><label for="s-${i[0]}"><span>${i[1]}</span><output id="o-${i[0]}">${i[6](i[5])}</output></label><input type="range" id="s-${i[0]}" min="${i[2]}" max="${i[3]}" step="${i[4]}" value="${i[5]}"></div>`;}).join("")}
+    </div>
+    <div class="card" style="padding:18px"><div class="eyebrow">Results</div><div id="outs"></div><p class="small muted" style="margin-top:12px">${C.note}</p></div>
+  </div>`;
+  const upd=()=>{ $("#outs",body).innerHTML=C.out(vals).map(o=>`<div class="out ${o[2]?"big":""}"><span>${o[0]}</span><b>${o[1]}</b></div>`).join(""); };
+  C.inputs.forEach(i=>{ $("#s-"+i[0],body).oninput=e=>{vals[i[0]]=+e.target.value; $("#o-"+i[0],body).textContent=i[6](+e.target.value); upd();}; });
+  upd();
+}
+
+/* ---------- router ---------- */
+function route(){
+  const h = location.hash.slice(1) || "overview";
+  const v = $("#view");
+  let id = UC.find(u=>h===u.id || h.startsWith(u.id+"-"));
+  $$("#nav a").forEach(a=>a.classList.toggle("on", id ? a.dataset.r===id.id : a.dataset.r==="overview"));
+  if (id){ const t = h===id.id ? "demo" : h.slice(id.id.length+1); renderUseCase(v, id.id, ["demo","build","roi"].includes(t)?t:"demo"); }
+  else renderOverview(v);
+  window.scrollTo(0,0);
+}
+window.addEventListener("hashchange", route);
+route();
+</script>
+</body>
+</html>
